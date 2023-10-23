@@ -127,7 +127,7 @@ class sAes:
 
     def key_expansion(self,key):
         """Key expansion for S-AES."""
-        w = [key >> 8, key & 0xFF]  # Split the 16-bit key into two 8-bit parts: w0 and w1
+        w = [   key >> 8, key & 0xFF]  # Split the 16-bit key into two 8-bit parts: w0 and w1
         temp1=128
         temp2=48
         # Compute w2
@@ -142,5 +142,76 @@ class sAes:
         w5 = w4 ^ w3
         return [w[0], w[1], w2, w3, w4, w5]
 
+    def encrypt(self, plaintext, key):
+        expanded_keys = self.key_expansion(key)
+        round_keys = []
+        for k in expanded_keys:
+            binary_key = bin(k)[2:].zfill(8)
+            round_keys.append(binary_key[:4])
+            round_keys.append(binary_key[4:])
+        #print("Round keys:", round_keys)
+        # 轮密钥加
+        state = [[plaintext[0][0] ^ int(round_keys[0], 2), plaintext[0][1] ^ int(round_keys[2], 2)],
+                 [plaintext[1][0] ^ int(round_keys[1], 2), plaintext[1][1] ^ int(round_keys[3], 2)]]
+        #print("After initial round key addition:", state)
+
+        # 第1轮
+        state = self.sub_bytes(state)
+        #print("After SubBytes (Round 1):", state)
+        state = self.shift_rows(state)
+        #print("After ShiftRows (Round 1):", state)
+        state = self.mix_columns(state)
+        #print("After MixColumns (Round 1):", state)
+        state = [[state[0][0] ^ int(round_keys[4], 2), state[0][1] ^ int(round_keys[6], 2)],
+                 [state[1][0] ^ int(round_keys[5], 2), state[1][1] ^ int(round_keys[7], 2)]]
+        #print("After round key addition (Round 1):", state)
+
+        # 第2轮
+        state = self.sub_bytes(state)
+        #print("After SubBytes (Round 2):", state)
+        state = self.shift_rows(state)
+        #print("After ShiftRows (Round 2):", state)
+        state = [[state[0][0] ^ int(round_keys[8], 2), state[0][1] ^ int(round_keys[10], 2)],
+                 [state[1][0] ^ int(round_keys[9], 2), state[1][1] ^ int(round_keys[11], 2)]]
+        #print("After final round key addition:", state)
+
+        return state
+
+    def decrypt(self, ciphertext, key):
+        expanded_keys = self.key_expansion(key)
+        round_keys = []
+        for k in expanded_keys:
+            binary_key = bin(k)[2:].zfill(8)
+            round_keys.append(binary_key[:4])
+            round_keys.append(binary_key[4:])
+
+        # 初始轮密钥加
+        state = [[ciphertext[0][0] ^ int(round_keys[8], 2), ciphertext[0][1] ^ int(round_keys[10], 2)],
+                 [ciphertext[1][0] ^ int(round_keys[9], 2), ciphertext[1][1] ^ int(round_keys[11], 2)]]
+
+        # 第1轮
+        state = self.inv_shift_rows(state)
+        state = self.inv_sub_bytes(state)
+        state = [[state[0][0] ^ int(round_keys[4], 2), state[0][1] ^ int(round_keys[6], 2)],
+                 [state[1][0] ^ int(round_keys[5], 2), state[1][1] ^ int(round_keys[7], 2)]]
+        state = self.inv_mix_columns(state)
+
+        # 第2轮
+        state = self.inv_shift_rows(state)
+        state = self.inv_sub_bytes(state)
+        state = [[state[0][0] ^ int(round_keys[0], 2), state[0][1] ^ int(round_keys[2], 2)],
+                 [state[1][0] ^ int(round_keys[1], 2), state[1][1] ^ int(round_keys[3], 2)]]
+
+        return state
 
 
+# aes = sAes()
+# plaintext = [[0x6, 0x6], [0xf, 0xb]]
+# key = 0xa73b
+#
+# print("原始明文：", plaintext)
+# ciphertext = aes.encrypt(plaintext, key)
+# print("加密后的密文：", ciphertext)
+#
+# decrypted_plaintext = aes.decrypt(ciphertext, key)
+# print("解密后的明文：", decrypted_plaintext)

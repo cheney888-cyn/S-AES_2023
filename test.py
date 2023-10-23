@@ -54,6 +54,6 @@ print(f"sub_nib({hex(word)}) = {hex(result)}")
 
 # 测试key_expansion函数
 print("\nTesting key_expansion function:")
-key = 0x2D55
+key = 0xa73b
 expanded_key = aes.key_expansion(key)
 print(f"key_expansion({hex(key)}) = {[hex(w) for w in expanded_key]}")
