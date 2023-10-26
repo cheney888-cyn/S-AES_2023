@@ -204,9 +204,9 @@ class sAes:
 
         return state
 
-
+#
 # aes = sAes()
-# plaintext = [[0x6, 0x6], [0xf, 0xb]]
+# plaintext = [[0x15, 0x2], [0x4, 0x9]]
 # key = 0xa73b
 #
 # print("原始明文：", plaintext)
