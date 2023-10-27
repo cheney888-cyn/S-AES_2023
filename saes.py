@@ -17,20 +17,20 @@ class sAes:
     def xor(self, a, b):
         return a ^ b
     # 半字节替代
-    def sub_bytes(self, state):
-        """SubBytes step for S-AES."""
-        new_state = [[0, 0], [0, 0]]
-        for i in range(2):
-            for j in range(2):
-                nibble = state[i][j]
-                # 使用半字节的最左侧2位作为S盒的行索引
-                sbox_row = (nibble >> 2) & 0x03
-                # 使用半字节的最右侧2位作为S盒的列索引
-                sbox_col = nibble & 0x03
-                # 使用这两个索引从S盒中查找新的半字节值
-                new_nibble = self.S_BOX[sbox_row][sbox_col]
-                new_state[i][j] = new_nibble
-        return new_state
+def sub_bytes(self, state):
+    """SubBytes step for S-AES."""
+    new_state = [[0, 0], [0, 0]]
+    for i in range(2):
+        for j in range(2):
+            nibble = state[i][j]
+            # 使用半字节的最左侧2位作为S盒的行索引
+            sbox_row = (nibble >> 2) & 0x03
+            # 使用半字节的最右侧2位作为S盒的列索引
+            sbox_col = nibble & 0x03
+            # 使用这两个索引从S盒中查找新的半字节值
+            new_nibble = self.S_BOX[sbox_row][sbox_col]
+            new_state[i][j] = new_nibble
+    return new_state
     # 逆半字节替代
     def inv_sub_bytes(self, state):
         """Inverse SubBytes step for S-AES."""
