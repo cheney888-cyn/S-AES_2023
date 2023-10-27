@@ -1,5 +1,7 @@
 from saes import sAes
 import random
+
+
 class Extended_sAes(sAes):
     def double_encrypt(self, plaintext, key):
         # 从32位密钥中拆分为两个16位密钥
@@ -25,7 +27,7 @@ class Extended_sAes(sAes):
 
         return final_plaintext
 
-    def matrix_to_int(self,matrix):
+    def matrix_to_int(self, matrix):
         # Flatten the matrix
         flattened = [matrix[0][0], matrix[1][0], matrix[0][1], matrix[1][1]]
 
@@ -91,7 +93,7 @@ class Extended_sAes(sAes):
         # 生成一个随机的16位初始向量（IV）
         return random.randint(0, 0xFFFF)
 
-    def split_into_16_bit_groups(self,number):
+    def split_into_16_bit_groups(self, number):
         # 初始化一个空列表，用于存储分组结果
         groups = []
         res = []
@@ -104,10 +106,11 @@ class Extended_sAes(sAes):
         for i in range(len(groups)):
             res.append(groups.pop())
         return res
+
     def cbc_encrypt(self, plaintext, key, iv):
         # 初始化一个空的密文列表
         ciphertext = []
-        plaintexts=self.split_into_16_bit_groups(plaintext)
+        plaintexts = self.split_into_16_bit_groups(plaintext)
         # 对每个明文分组进行加密
         for block in plaintexts:
             # 将明文分组与前一个密文分组（或IV）进行异或运算
@@ -118,8 +121,8 @@ class Extended_sAes(sAes):
                 prev_block = ciphertext[-1]
 
             xored_block = block ^ prev_block
-            xored_block_expand=bin(xored_block)[2:].zfill(16)
-            print('异或后的分组：',xored_block_expand)
+            xored_block_expand = bin(xored_block)[2:].zfill(16)
+            #print('异或后的分组：', xored_block_expand)
             plaintext_matrix = [
                 [int(xored_block_expand[0:4], 2), int(xored_block_expand[8:12], 2)],
                 [int(xored_block_expand[4:8], 2), int(xored_block_expand[12:16], 2)]
@@ -127,8 +130,9 @@ class Extended_sAes(sAes):
 
             # 使用密钥加密异或后的分组
             encrypted_block = self.encrypt(plaintext_matrix, key)
-            concatenated_binary = bin(encrypted_block[0][0])[2:].zfill(4) + bin(encrypted_block[1][0])[2:].zfill(4) + bin(encrypted_block[0][1])[2:].zfill(4) + bin(encrypted_block[1][1])[2:].zfill(4)
-            print('加密后的分组：',concatenated_binary)
+            concatenated_binary = bin(encrypted_block[0][0])[2:].zfill(4) + bin(encrypted_block[1][0])[2:].zfill(
+                4) + bin(encrypted_block[0][1])[2:].zfill(4) + bin(encrypted_block[1][1])[2:].zfill(4)
+            #print('加密后的分组：', concatenated_binary)
             # 将加密后的分组添加到密文列表
             ciphertext.append(int(concatenated_binary, 2))
 
@@ -138,7 +142,7 @@ class Extended_sAes(sAes):
         # 初始化一个空的明文列表
         plaintexts = []
         ciphertexts = self.split_into_16_bit_groups(ciphertext)
-        print(ciphertexts)
+        #print(ciphertexts)
         # 对每个密文分组进行解密
         for block in ciphertexts:
             # 使用密钥解密密文分组
@@ -148,7 +152,7 @@ class Extended_sAes(sAes):
                 [int(ciphertext_block[4:8], 2), int(ciphertext_block[12:16], 2)]
             ]
             decrypted_block_matrix = self.decrypt(ciphertext_block_matrix, key)
-            print('解密后的分组：',decrypted_block_matrix)
+            #print('解密后的分组：', decrypted_block_matrix)
             # 将解密后的分组与前一个密文分组（或IV）进行异或运算
             if not plaintexts:
                 # 如果是第一个分组，使用初始向量
@@ -164,8 +168,9 @@ class Extended_sAes(sAes):
                 [decrypted_block_matrix[0][0] ^ prev_block[0][0], decrypted_block_matrix[0][1] ^ prev_block[0][1]],
                 [decrypted_block_matrix[1][0] ^ prev_block[1][0], decrypted_block_matrix[1][1] ^ prev_block[1][1]]
             ]
-            print('异或后的分组：',xored_block_matrix)
-            plaintext=bin(xored_block_matrix[0][0])[2:].zfill(4) + bin(xored_block_matrix[1][0])[2:].zfill(4) + bin(xored_block_matrix[0][1])[2:].zfill(4) + bin(xored_block_matrix[1][1])[2:].zfill(4)
+            #print('异或后的分组：', xored_block_matrix)
+            plaintext = bin(xored_block_matrix[0][0])[2:].zfill(4) + bin(xored_block_matrix[1][0])[2:].zfill(4) + bin(
+                xored_block_matrix[0][1])[2:].zfill(4) + bin(xored_block_matrix[1][1])[2:].zfill(4)
             # 将异或运算结果添加到明文列表
             plaintexts.append(plaintext)
 
@@ -175,6 +180,10 @@ class Extended_sAes(sAes):
         return plaintexts
 
 
+def trans(block):
+    return bin(block[0][0])[2:].zfill(4) + bin(block[1][0])[2:].zfill(4) + bin(block[0][1])[2:].zfill(4) + bin(block[1][1])[2:].zfill(4)
+
+
 # # 示例
 # aes = Extended_sAes()
 # plaintext = [[0x6, 0x6], [0xf, 0xb]]
@@ -182,18 +191,18 @@ class Extended_sAes(sAes):
 # key1 = 0xa73b
 # key2 = 0xa24c
 # key3 = 0x1178
-# print("原始明文：", plaintext)
+# print("原始明文：", trans(plaintext))
 # ciphertext = aes.double_encrypt(plaintext, key)
-# print("双重加密后的密文：", ciphertext)
+# print("双重加密后的密文：", trans(ciphertext))
 # decrypted_plaintext = aes.double_decrypt(ciphertext, key)
-# print("解密后的明文：", decrypted_plaintext)
+# print("解密后的明文：", trans(decrypted_plaintext))
 # keys = aes.meet_in_the_middle_attack(plaintext, ciphertext)
 # print("中间相遇攻击所得的可能密钥为:", keys)
-# print("原始明文：", plaintext)
+# print("原始明文：", trans(plaintext))
 # ciphertext = aes.triple_encrypt(plaintext, key1, key2, key3)
-# print("三重加密后的密文：", ciphertext)
+# print("三重加密后的密文：", trans(ciphertext))
 # decrypted_plaintext = aes.triple_decrypt(ciphertext, key1, key2, key3)
-# print("解密后的明文：", decrypted_plaintext)
+# print("解密后的明文：", trans(decrypted_plaintext))
 
 # 示例
 aes = Extended_sAes()
@@ -210,7 +219,7 @@ for num in ciphertext:
     binary_string += bin(num)[2:].zfill(16)
 print("加密后的密文：", binary_string)
 # 修改密文分组
-# ciphertext[0] = 0xABCD
+ciphertext[0] = 0xABCD
 ciphertext_edited = ciphertext[0] << 16 | ciphertext[1]
 binary_string = ""
 # 遍历数组中的每个数字并将其转换为二进制字符串，然后拼接在一起
